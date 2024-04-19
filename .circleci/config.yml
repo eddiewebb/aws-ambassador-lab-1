@@ -4,12 +4,20 @@ jobs:
   build-image:
     machine:
       image: ubuntu-2204:current
+      docker_layer_caching: true
     resource_class: large
     steps:
       - checkout
       - run:
+          name: Set Version
+          command: |
+            echo "export VERSION=$(cat VERSION)" >> $BASH_ENV
+            source $BASH_ENV 
+      - run:
           name: Build Docker Image
-          command: docker build -f Dockerfile -t demo:test .
+          command: docker build -f Dockerfile -t ${DOCKER_IMAGE}:${CIRCLE_SHA1} --build-arg VERSION=${VERSION} --build-arg CIRCLE_BUILD_URL=${CIRCLE_BUILD_URL} --build-arg CIRCLE_SHA1=${CIRCLE_SHA1} --build-arg CIRCLE_USERNAME=${CIRCLE_USERNAME} --build-arg CIRCLE_BUILD_NUM=${CIRCLE_BUILD_NUM} .
+    environment:
+      DOCKER_IMAGE: multi-arch-circleci-demo
 
 workflows:
   demo:
