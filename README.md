@@ -1,63 +1,44 @@
 # AWS Ambassador - From Zero to Hero: Mastering CI/CD Pipelines with CircleCI 
 
-Welcome to the first hands on lab for the AWS Ambassador CircleCI program! In this repository you will find all the code needed to complete
-the first lab, From Zero to Hero: Mastering CI/CD Pipelines with CircleCI. This lab is focused on getting users comfortable with the
-nuts and bolts of CircleCI. The lab focuses on the developer experience when onboarding a new project to CircleCI. In the lab you will go from
-a brand new project on CircleCI to a full production CI/CD pipeline. 
+Welcome to the first hands-on lab for the AWS Ambassador CircleCI program! This repository contains all the code needed to complete the lab titled "From Zero to Hero: Mastering CI/CD Pipelines with CircleCI." The focus of this lab is to familiarize users with the nuts and bolts of CircleCI, particularly the developer experience when onboarding a new project to CircleCI. Throughout the lab, participants will progress from setting up a brand new project on CircleCI to establishing a full production CI/CD pipeline.
 
 ## Prerequisites
 
-For this lab you will be onboarding a new project onto CircleCI and deploying some services into AWS. In order to continue with this lab you will need:
+To participate in this lab, you will need:
 
-- CircleCI Account (Will be shown how to sign up durning the lab)
-- AWS Account (Will be shown how to deploy the following in the lab)
-    - OpenID Connect Web Identity
-    - IAM Role with the following permissions:
-        - AmazonEC2ContainerRegistryFullAccess
-        - AmazonECS_FullAccess
-        - AmazonElasticContainerRegistryPublicFullAccess
-    - Application Load Balancer
-    - Security Group
-        - Allows Inbound Access for the following ports: `80`, `443`, `8080`
-    - ECR
-    - ECS
-- GitHub Account (Will be forking this repository into your account)
+- CircleCI Account (You will be guided on how to sign up during the lab)
+- AWS Account (Resources will be deployed in the lab via CloudFormation)
+- GitHub Account (For forking this repository into your account)
 
 ## Milestones
 
-In the repository, you will find the `milestones` folder. This folder contains each "version" of the CircleCI configuration that you will
-need to construct in order to complete the lab. The first milestone contains the most basic config while the last milestone contains the full production config. 
-As you progress through out the lab, you can always refer the the milestone folders to see what changes are needed to get to the next milestone. 
-
+In the repository, you will find the `milestones` folder, which contains each "version" of the CircleCI configuration needed to complete the lab. The first milestone contains the most basic configuration, while the last milestone contains the full production config. You can refer to the milestone folders as you progress through the lab to see what changes are needed to reach the next milestone.
 
 ## Background
 
-With the release of CircleCI's Arm executor, we can now build on multiple architectures via CircleCI's Cloud offering. 
-Building on architecture offers better performance/speed and the assurance that your application will indeed work on your platform.
+With the release of CircleCI's Arm executor, we can now build on multiple architectures via CircleCI's Cloud offering. Building on multiple architectures offers better performance/speed and ensures that your application will work on your platform.
 
-While some examples show using Docker Buildx with QEMU, this can lead to issues with low level languages looking like
-they work, but in reality they fail when deployed on your platform.  
+While some examples show using Docker Buildx with QEMU, this can lead to issues with low-level languages appearing to work but failing when deployed on your platform. 
 
-For this example we will build a Python application, build Docker images for each architecture(`arm64`, and `amd64`), 
-and construct a manifest to tie the Docker images together into a single tag. 
+For this example, we will build a Python application, create Docker images for each architecture (arm64 and amd64), and construct a manifest to tie the Docker images together into a single tag. 
+
 
 ## CI/CD Setup
 
-For this example we will be using CircleCI's infrastructure to build, test and push Docker images. The two main executors
-we will be using is the machine executor for both `amd64` and `arm64`.
+In this lab, we will utilize CircleCI's infrastructure to automate the build, test, and deployment processes for Docker images. We will primarily use the machine executor for both `amd64` and `arm64` architectures.
 
-We want to setup CircleCI to accomplish the following:
+Our objectives for setting up CircleCI are as follows:
 
-- Trigger on every commit to `main` and every PR on this repo
-- Build the Flask Demo container
-- Test Flask Application
-- Test the container to make sure it is functioning
-- If tests past, tag the images and push the architecture specific images to ECR
-- Create Docker manifests to allow users to pull down the image without caring about architecture
-- Deploy the new images to ECS
+- **Triggering Builds:** Configure CircleCI to trigger builds on every commit to the `main` branch and every pull request on this repository.
+- **Building the Flask Demo Container:** Build the Docker container for the Flask demo application.
+- **Testing Flask Application:** Implement tests to ensure the Flask application functions correctly.
+- **Testing the Container:** Validate the functionality of the Docker container.
+- **Tagging and Pushing Images:** If tests pass successfully, tag the Docker images and push the architecture-specific images to Amazon Elastic Container Registry (ECR).
+- **Creating Docker Manifests:** Create Docker manifests to enable users to pull down the image without needing to worry about architecture specifics.
+- **Deploying New Images to ECS:** Deploy the new Docker images to Amazon Elastic Container Service (ECS).
 
+Currently, the demo deploys a Flask-based website using Docker. The Flask server is load-balanced on multiple architectures, allowing users to observe architecture changes by refreshing the page.
 
-Currently, the demo deploys a Flask based website utilizing Docker. The flask server is load balanced on multiple architectures! Feel free to refresh a couple times and your architecture should change!
 
 ## Deployment Documentation
 
@@ -67,7 +48,8 @@ Project structure:
 
 ```
 .
-├── .circleci                   - CircleCI CI/CD Pipeline
+├── cloudformation              - CloudFormation Template used to deploy labs infrastructure 
+├── milestones                  - Milestones to guide you through each part of the lab
 ├── demo
 |    ├── app/                   - Python Application
 |    ├── requirements.txt

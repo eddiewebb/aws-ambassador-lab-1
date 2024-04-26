@@ -1,10 +1,35 @@
-This is the first milestone which contains the most basic config. In this config file, you will
-build the docker container for this lab using CircleCI's infrastructure.
+## Milestone 1: Onboarding to the CircleCI Platform
 
-But before you can trigger a build on CircleCI, you need to sign up for an account. You can do this by going to https://circleci.com/signup/. You will need to sign up for an account. Once you have logged into CircleCI, you can fork this repository into your
-GitHub account. 
+### Overview
+In this milestone, we will initiate our journey by forking the GitHub repository and then proceed to onboard to the CircleCI platform and set up our first project.
+Additionally, we will spin up some AWS infrastructure that will be utilized later on.  
 
-From there you can onboard your first project to CircleCI by going to the UI, clicking on the projects tab, and click "Create Project" button in the top right. 
+### Steps
+1. **Fork GitHub Repository:**
+   - Fork the GitHub repository [aws-ambassador-lab-1](https://github.com/james-crowley/aws-ambassador-lab-1) to your own GitHub account.
 
-The onboarding flow will walk you through on linking your GitHub account, and onboard the repository you just forked into your account. 
+2. **Sign Up for CircleCI Account:**
+   - Navigate to the [CircleCI sign up page](https://circleci.com/signup/).
+   - Complete the registration process to create a new CircleCI account.
 
+3. **Link GitHub Account to CircleCI:**
+   - Access CircleCI platform and link your GitHub account.
+
+4. **Onboard Repository to CircleCI:**
+   - Onboard the forked repository into CircleCI, allowing seamless integration between GitHub and CircleCI.
+
+5. **Configure Pipeline with Basic Config:**
+   - Utilize the config file provided in the milestone 1 folder of the forked repository.
+   - The initial configuration consists of a basic setup with a single job in the workflow, aimed at building the sample application's Docker image.
+
+5. **Deploy AWS Infrastructure using Cloud:**
+   - Before deploying AWS infrastructure, navigate to CircleCI's UI and click Organization Settings. Select the Overview section, and copy Organization ID shown.
+   - Next utilize [this CloudFormation Link](https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/quickcreate?templateURL=https%3A%2F%2Fs3.us-east-1.amazonaws.com%2Fcf-templates-in2vcf04thre-us-east-1%2F2024-04-26T154219.769Zmqp-aws-ambassador.yml&stackName=AWS-Ambassador&param_OrgId=&param_LoadBalancerName=ambassador&param_RoleName=ambassador&param_CertificateThumbprint=9e99a48a9960b14926bb7f3b02e22da2b0ab7280&param_SecurityGroupName=ambassador&param_VpcID=&param_ECSTaskExecutionRole=ecsTaskExecutionRoleAmbassador&param_ClusterName=ambassador&param_RepositoryName=ambassador&param_SubnetIDs%5B%5D=) and fill in the `OrgID` with the Organization ID you copied earlier. Please select your VPC and all subnet IDS.
+
+### Objectives
+- Successfully fork the specified GitHub repository.
+- Complete the onboarding process to CircleCI platform.
+- Establish integration between GitHub and CircleCI by linking accounts.
+- Initialize the project on CircleCI with the provided basic configuration.
+- Achieve a green build status and generate a Docker image using CircleCI.
+- Provision AWS Infrastructure needed later on.

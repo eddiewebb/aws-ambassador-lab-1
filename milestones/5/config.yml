@@ -2,6 +2,9 @@ version: 2.1
 
 orbs:
   browser-tools: circleci/browser-tools@1.4.8
+  aws-cli: circleci/aws-cli@4.1.3
+  aws-ecr: circleci/aws-ecr@9.0.4
+  aws-ecs: circleci/aws-ecs@4.0.0
 
 commands:
   run-pytest:
@@ -92,12 +95,33 @@ commands:
           name: Build Docker Image
           command: docker build -f Dockerfile -t ${DOCKER_IMAGE}:${CIRCLE_SHA1} --build-arg VERSION=${VERSION} --build-arg CIRCLE_BUILD_URL=${CIRCLE_BUILD_URL} --build-arg CIRCLE_SHA1=${CIRCLE_SHA1} --build-arg CIRCLE_USERNAME=${CIRCLE_USERNAME} --build-arg CIRCLE_BUILD_NUM=${CIRCLE_BUILD_NUM} .
 
+  enable-docker-experimental:
+    description: "Enables Experimental Features in Docker"
+    steps:
+      - run:
+          name: "Enable Experimental Feature in Docker"
+          command: |
+            mkdir -p $HOME/.docker
+            echo $'{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json
+            echo $'{\n    "experimental": "enabled"\n}' | sudo tee $HOME/.docker/config.json
+            sudo service docker restart
 
 executors:
   browsers-python:
     docker:
       - image: cimg/python:3.9-browsers
+  
+  arm64:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: true
+    resource_class: arm.medium
 
+  amd64:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: true
+    resource_class: medium
 
 jobs:
   test-demo:
@@ -115,10 +139,10 @@ jobs:
           pytest-args: "--live-server-port 8080 --verbose --junitxml=test-results/junit.xml"
       
   build-image:
-    machine:
-      image: ubuntu-2204:current
-      docker_layer_caching: true
-    resource_class: large
+    parameters:
+      architecture:
+        type: executor
+    executor: << parameters.architecture >>
     steps:
       - checkout
       - build
@@ -127,8 +151,10 @@ jobs:
       DOCKER_IMAGE: multi-arch-circleci-demo
 
   test-image:
-    machine:
-      image: ubuntu-2204:current
+    parameters:
+      architecture:
+        type: executor
+    executor: << parameters.architecture >>
     steps:
       - checkout
       - load-docker-image
@@ -137,6 +163,69 @@ jobs:
       DOCKER_IMAGE: multi-arch-circleci-demo
       GOSS_SLEEP: 10
 
+  publish-image:
+    parameters:
+      architecture:
+        type: executor
+    executor: << parameters.architecture >>
+    steps:
+      - checkout
+      - load-docker-image
+      - aws-cli/setup:
+          profile_name: default
+          role_arn: arn:aws:iam::992382483259:role/aws_ambassador-lab1-ECS-ECR
+          role_session_name: example-session
+      - aws-ecr/ecr_login:
+          public_registry: true
+      - run:
+          name: "Tag Image to be pushed to ECR"
+          command: |
+            docker tag ${DOCKER_IMAGE}:${CIRCLE_SHA1} public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:${CIRCLE_SHA1}-$(docker version -f {{.Server.Arch}})
+            docker tag ${DOCKER_IMAGE}:${CIRCLE_SHA1} public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:latest-$(docker version -f {{.Server.Arch}})
+            docker images
+      - aws-ecr/push_image:
+          repo: ${ECR_REPO}
+          public_registry: true
+          tag: latest-$(docker version -f {{.Server.Arch}}),${CIRCLE_SHA1}-$(docker version -f {{.Server.Arch}})
+    environment:
+      DOCKER_IMAGE: multi-arch-circleci-demo
+      ECR_REPO: ambassador
+
+  publish-manifest:
+    executor: amd64
+    steps:
+      - enable-docker-experimental
+      - aws-cli/setup:
+          profile_name: default
+          role_arn: arn:aws:iam::992382483259:role/aws_ambassador-lab1-ECS-ECR
+          role_session_name: example-session
+      - aws-ecr/ecr_login:
+          public_registry: true
+      - run:
+          name: "Pull down arm64 & amd64 images"
+          command: |
+            docker pull public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:${CIRCLE_SHA1}-arm64
+            docker pull public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:latest-arm64
+            docker pull public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:${CIRCLE_SHA1}-amd64
+            docker pull public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:latest-arm64
+      - run:
+          name: "Create and Publish Manifest for CircleCI SHA"
+          command: |
+            docker manifest create public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:${CIRCLE_SHA1} public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:${CIRCLE_SHA1}-arm64 public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:${CIRCLE_SHA1}-amd64
+            docker manifest annotate public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:${CIRCLE_SHA1} public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:${CIRCLE_SHA1}-arm64 --arch arm64
+            docker manifest annotate public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:${CIRCLE_SHA1} public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:${CIRCLE_SHA1}-amd64 --arch amd64
+            docker manifest push public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:${CIRCLE_SHA1}
+      - run:
+          name: "Create and Publish Manifest for latest"
+          command: |
+            docker manifest create public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:latest public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:latest-arm64 public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:latest-amd64
+            docker manifest annotate public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:latest public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:latest-arm64 --arch arm64
+            docker manifest annotate public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:latest public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:latest-amd64 --arch amd64
+            docker manifest push public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:latest
+    environment:
+      DOCKER_IMAGE: multi-arch-circleci-demo
+      ECR_REPO: ambassador
+
 
 workflows:
   demo:
@@ -144,8 +233,44 @@ workflows:
       - test-demo:
           name: "Testing Python Code"
       - build-image:
-          name: "Building Container Image"
+          name: "Building << matrix.architecture >> Container Image"
+          matrix:
+            parameters:
+              architecture: ["arm64", "amd64"]
       - test-image:
-          name: "Testing Container Image"
+          name: "Testing << matrix.architecture >> Container Image"
+          matrix:
+            parameters:
+              architecture: ["arm64", "amd64"]
           requires:
-            - "Building Container Image"
+            - "Building << matrix.architecture >> Container Image"
+      - publish-image:
+          name: "Publish << matrix.architecture >> Container Image to ECR"
+          matrix:
+            parameters:
+              architecture: ["arm64", "amd64"]
+          requires:
+            - "Testing << matrix.architecture >> Container Image"
+            - "Testing Python Code"
+            - "Testing << matrix.architecture >> Container Image"
+          context: aws_demo
+      - publish-manifest:
+          name: "Publish Manifest to ECR"
+          requires:
+            - "Publish arm64 Container Image to ECR"
+            - "Publish amd64 Container Image to ECR"
+          context: aws_demo
+      - aws-ecs/deploy_service_update:
+          auth:
+            - aws-cli/setup:
+                profile_name: default
+                role_arn: arn:aws:iam::992382483259:role/aws_ambassador-lab1-ECS-ECR
+                role_session_name: example-session
+          cluster: ambassador-demo
+          container_image_name_updates: container=ambassador-demo,tag=${CIRCLE_SHA1}
+          family: ambassador-demo
+          service_name: ambassador-demo
+          profile_name: default
+          requires:
+            - "Publish Manifest to ECR"
+          context: aws_demo
