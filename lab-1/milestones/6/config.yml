@@ -253,13 +253,11 @@ workflows:
             - "Testing << matrix.architecture >> Container Image"
             - "Testing Python Code"
             - "Testing << matrix.architecture >> Container Image"
-          context: aws_demo
       - publish-manifest:
           name: "Publish Manifest to ECR"
           requires:
             - "Publish arm64 Container Image to ECR"
             - "Publish amd64 Container Image to ECR"
-          context: aws_demo
       - aws-ecs/deploy_service_update:
           auth:
             - aws-cli/setup:
@@ -273,7 +271,6 @@ workflows:
           profile_name: default
           requires:
             - "Publish Manifest to ECR"
-          context: aws_demo
       - aws-ecs/deploy_service_update:
           auth:
             - aws-cli/setup:
@@ -287,4 +284,3 @@ workflows:
           profile_name: default
           requires:
             - "Publish Manifest to ECR"
-          context: aws_demo

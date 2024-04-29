@@ -253,13 +253,11 @@ workflows:
             - "Testing << matrix.architecture >> Container Image"
             - "Testing Python Code"
             - "Testing << matrix.architecture >> Container Image"
-          context: aws_demo
       - publish-manifest:
           name: "Publish Manifest to ECR"
           requires:
             - "Publish arm64 Container Image to ECR"
             - "Publish amd64 Container Image to ECR"
-          context: aws_demo
       - aws-ecs/deploy_service_update:
           auth:
             - aws-cli/setup:
@@ -273,4 +271,16 @@ workflows:
           profile_name: default
           requires:
             - "Publish Manifest to ECR"
-          context: aws_demo
+      - aws-ecs/deploy_service_update:
+          auth:
+            - aws-cli/setup:
+                profile_name: default
+                role_arn: arn:aws:iam::992382483259:role/aws_ambassador-lab1-ECS-ECR
+                role_session_name: example-session
+          cluster: ambassador-demo
+          container_image_name_updates: container=ambassador-demo,tag=${CIRCLE_SHA1}
+          family: ambassador-demo-arm
+          service_name: ambassador-demo-arm
+          profile_name: default
+          requires:
+            - "Publish Manifest to ECR"

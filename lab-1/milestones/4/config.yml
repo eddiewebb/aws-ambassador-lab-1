@@ -183,7 +183,6 @@ workflows:
           requires:
             - "Testing Python Code"
             - "Testing Container Image"
-          context: aws_demo
       - aws-ecs/deploy_service_update:
           auth:
             - aws-cli/setup:
@@ -197,4 +196,3 @@ workflows:
           profile_name: default
           requires:
             - "Publish Container Image to ECR"
-          context: aws_demo
