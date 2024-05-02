@@ -27,10 +27,12 @@ This milestone is optional and is designed for participants who have not complet
    
 7. **Adjust CircleCI Configuration:**
    - Based on the names of the infrastructure you provisioned with CloudFormation, you might need to adjust the `config.yml` file to match the resources' names.
+   - You will need to change the `ECR_REPO`, `role_arn`, `cluster`, `container_image_name_updates`, `family`, and `service_name`. Please be aware `family` and `service_name` are
+   architecture specific. 
 
 8. **Configure Environment Variables:**
    - Add the necessary environment variables (`AWS_ACCOUNT_ID`, `AWS_DEFAULT_REGION`, and `AWS_ECR_PUBLIC_REGISTRY_ALIAS`) to the project's environment variables in CircleCI.
-   - For `AWS_ECR_PUBLIC_REGISTRY_ALIAS` it will be the URI but without the repository name. For example if your URI is `public.ecr.aws/o5b1w9d8/ambassador` the value we need is `public.ecr.aws/o5b1w9d8`
+   - For `AWS_ECR_PUBLIC_REGISTRY_ALIAS` it will be the URI but without the repository name. For example if your URI is `public.ecr.aws/o5b1w9d8/ambassador` the value we need is `o5b1w9d8`
 
 9. **Ensure Pipeline is Working Correctly:**
    - Verify that the pipeline is working correctly in CircleCI's UI. Ensure there are no errors or failures before proceeding to the next milestone.

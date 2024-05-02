@@ -5,6 +5,8 @@ orbs:
   aws-cli: circleci/aws-cli@4.1.3
   aws-ecr: circleci/aws-ecr@9.0.4
   aws-ecs: circleci/aws-ecs@4.0.0
+  snyk: snyk/snyk@2.1.0
+  ggshield: gitguardian/ggshield@1.1.4
 
 commands:
   run-pytest:
@@ -163,6 +165,22 @@ jobs:
       DOCKER_IMAGE: multi-arch-circleci-demo
       GOSS_SLEEP: 10
 
+  scan-image:
+    parameters:
+      architecture:
+        type: executor
+      os-type:
+        type: string
+    executor: << parameters.architecture >>
+    steps:
+      - load-docker-image
+      - snyk/scan:
+          docker-image-name: ${DOCKER_IMAGE}:${CIRCLE_SHA1}
+          severity-threshold: critical
+          os: << parameters.os-type >>
+    environment:
+      DOCKER_IMAGE: multi-arch-circleci-demo
+
   publish-image:
     parameters:
       architecture:
@@ -230,6 +248,10 @@ jobs:
 workflows:
   demo:
     jobs:
+      - ggshield/scan:
+          name: Scanning for Secrets with GitGuardian
+          revision: $CIRCLE_SHA1
+          context: ambassador
       - test-demo:
           name: "Testing Python Code"
       - build-image:
@@ -244,6 +266,20 @@ workflows:
               architecture: ["arm64", "amd64"]
           requires:
             - "Building << matrix.architecture >> Container Image"
+      - scan-image:
+          name: "Scan << matrix.architecture >> Container Image"
+          matrix:
+            parameters:
+              architecture: ["arm64", "amd64"]
+              os-type: ["linux-arm64", "linux"]
+            exclude:
+              - architecture: "arm64"
+                os-type: "linux"
+              - architecture: "amd64"
+                os-type: "linux-arm64"
+          context: ambassador
+          requires:
+            - "Building << matrix.architecture >> Container Image"
       - publish-image:
           name: "Publish << matrix.architecture >> Container Image to ECR"
           matrix:
@@ -252,6 +288,7 @@ workflows:
           requires:
             - "Testing << matrix.architecture >> Container Image"
             - "Testing Python Code"
+            - "Scan << matrix.architecture >> Container Image"
       - publish-manifest:
           name: "Publish Manifest to ECR"
           requires:

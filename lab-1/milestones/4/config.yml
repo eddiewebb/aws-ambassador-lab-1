@@ -148,7 +148,7 @@ jobs:
       - load-docker-image
       - aws-cli/setup:
           profile_name: default
-          role_arn: arn:aws:iam::992382483259:role/aws_ambassador-lab1-ECS-ECR
+          role_arn: arn:aws:iam::992382483259:role/ambassador
           role_session_name: example-session
       - aws-ecr/ecr_login:
           public_registry: true
@@ -187,12 +187,12 @@ workflows:
           auth:
             - aws-cli/setup:
                 profile_name: default
-                role_arn: arn:aws:iam::992382483259:role/aws_ambassador-lab1-ECS-ECR
+                role_arn: arn:aws:iam::992382483259:role/ambassador
                 role_session_name: example-session
-          cluster: ambassador-demo
-          container_image_name_updates: container=ambassador-demo,tag=${CIRCLE_SHA1}
-          family: ambassador-demo
-          service_name: ambassador-demo
+          cluster: ambassador
+          container_image_name_updates: container=ambassador-amd,image-and-tag=public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/ambassador:${CIRCLE_SHA1}
+          family: ambassador-amd
+          service_name: ambassador-amd
           profile_name: default
           requires:
             - "Publish Container Image to ECR"

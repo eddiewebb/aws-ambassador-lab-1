@@ -6,7 +6,7 @@ In this milestone, we focus on deploying our Docker images to Amazon Elastic Con
 ### Steps
 1. **Configure Environment Variables:**
    - Add the necessary environment variables (`AWS_ACCOUNT_ID`, `AWS_DEFAULT_REGION`, and `AWS_ECR_PUBLIC_REGISTRY_ALIAS`) to the project's environment variables in CircleCI.
-   - For `AWS_ECR_PUBLIC_REGISTRY_ALIAS` it will be the URI but without the repository name. For example if your URI is `public.ecr.aws/o5b1w9d8/ambassador` the value we need is `public.ecr.aws/o5b1w9d8`
+   - For `AWS_ECR_PUBLIC_REGISTRY_ALIAS` it will be the URI but without the repository name. For example if your URI is `public.ecr.aws/o5b1w9d8/ambassador` the value we need is `o5b1w9d8`
 
 2. **Publish Docker Images to ECR:**
    - Implement a job in the CI workflow to publish Docker images to Amazon ECR.
