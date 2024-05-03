@@ -277,7 +277,7 @@ workflows:
                 role_arn: arn:aws:iam::992382483259:role/ambassador-eddie
                 role_session_name: example-session-eddie
           cluster: ambassador-eddie
-          container_image_name_updates: container=ambassador-eddie-amd,image-and-tag=public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/ambassador-eddie:${CIRCLE_SHA1}
+          container_image_name_updates: container=ambassador-eddie-arm,image-and-tag=public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/ambassador-eddie:${CIRCLE_SHA1}
           family: ambassador-eddie-arm
           service_name: ambassador-eddie-arm
           profile_name: default
