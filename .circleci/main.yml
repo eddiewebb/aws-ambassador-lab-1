@@ -261,7 +261,7 @@ jobs:
           name: Run Multi-Arch Container
           command: docker run -d -p 80:8080 public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:latest
     environment:
-          ECR_REPO: ambassador
+          ECR_REPO: ambassador-eddie
 
 workflows:
   demo:
