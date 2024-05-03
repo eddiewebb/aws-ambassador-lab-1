@@ -173,7 +173,7 @@ jobs:
       - load-docker-image
       - aws-cli/setup:
           profile_name: default
-          role_arn: arn:aws:iam::992382483259:role/ambassador
+          role_arn: arn:aws:iam::992382483259:role/ambassador-eddie
           role_session_name: example-session
       - aws-ecr/ecr_login:
           public_registry: true
@@ -189,7 +189,7 @@ jobs:
           tag: latest-$(docker version -f {{.Server.Arch}}),${CIRCLE_SHA1}-$(docker version -f {{.Server.Arch}})
     environment:
       DOCKER_IMAGE: multi-arch-circleci-demo
-      ECR_REPO: ambassador
+      ECR_REPO: ambassador-eddie
 
   publish-manifest:
     executor: amd64
@@ -197,7 +197,7 @@ jobs:
       - enable-docker-experimental
       - aws-cli/setup:
           profile_name: default
-          role_arn: arn:aws:iam::992382483259:role/ambassador
+          role_arn: arn:aws:iam::992382483259:role/ambassador-eddie
           role_session_name: example-session
       - aws-ecr/ecr_login:
           public_registry: true
@@ -224,7 +224,7 @@ jobs:
             docker manifest push public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/${ECR_REPO}:latest
     environment:
       DOCKER_IMAGE: multi-arch-circleci-demo
-      ECR_REPO: ambassador
+      ECR_REPO: ambassador-eddie
 
 
 workflows:
@@ -261,11 +261,11 @@ workflows:
           auth:
             - aws-cli/setup:
                 profile_name: default
-                role_arn: arn:aws:iam::992382483259:role/ambassador
-                role_session_name: example-session
-          cluster: ambassador
-          container_image_name_updates: container=ambassador-amd,image-and-tag=public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/ambassador:${CIRCLE_SHA1}
-          family: ambassador-amd
+                role_arn: arn:aws:iam::992382483259:role/ambassador-eddie
+                role_session_name: example-session-eddie
+          cluster: ambassador-eddie
+          container_image_name_updates: container=ambassador-eddie-amd,image-and-tag=public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/ambassador-eddie:${CIRCLE_SHA1}
+          family: ambassador-eddie-amd
           service_name: ambassador-demo
           profile_name: default
           requires:
@@ -274,12 +274,12 @@ workflows:
           auth:
             - aws-cli/setup:
                 profile_name: default
-                role_arn: arn:aws:iam::992382483259:role/ambassador
-                role_session_name: example-session
-          cluster: ambassador
-          container_image_name_updates: container=ambassador-amd,image-and-tag=public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/ambassador:${CIRCLE_SHA1}
-          family: ambassador-arm
-          service_name: ambassador-arm
+                role_arn: arn:aws:iam::992382483259:role/ambassador-eddie
+                role_session_name: example-session-eddie
+          cluster: ambassador-eddie
+          container_image_name_updates: container=ambassador-eddie-amd,image-and-tag=public.ecr.aws/${AWS_ECR_PUBLIC_REGISTRY_ALIAS}/ambassador-eddie:${CIRCLE_SHA1}
+          family: ambassador-eddie-arm
+          service_name: ambassador-eddie-arm
           profile_name: default
           requires:
             - "Publish Manifest to ECR"
