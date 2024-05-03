@@ -266,7 +266,7 @@ workflows:
           requires:
             - "Building << matrix.architecture >> Container Image"
       - scan-image:
-          context: lab2
+          context: Lab2
           name: "Scan << matrix.architecture >> Container Image"
           matrix:
             parameters:
