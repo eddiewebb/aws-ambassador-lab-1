@@ -5,6 +5,8 @@ orbs:
   aws-cli: circleci/aws-cli@4.1.3
   aws-ecr: circleci/aws-ecr@9.0.4
   aws-ecs: circleci/aws-ecs@4.0.0
+  snyk: snyk/snyk@2.1.0
+  ggshield: gitguardian/ggshield@1.1.4
 
 commands:
   run-pytest:
@@ -230,6 +232,9 @@ jobs:
 workflows:
   demo:
     jobs:
+      - ggshield/scan:
+          name: Scanning for Secrets with GitGuardian
+          revision: $CIRCLE_SHA1
       - test-demo:
           name: "Testing Python Code"
       - build-image:
