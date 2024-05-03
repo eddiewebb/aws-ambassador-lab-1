@@ -9,8 +9,8 @@ policy_name["context_enforcement"]
 
 # Declare a rule
 rule_contexts_allowed_by_project_ids = config.contexts_allowed_by_project_ids(
-    ["d4dcf1f2-9adf-4e70-a92c-bd751a7c3bd1"],
-    ["ambassador"]
+    ["dc9a5fcf-95ac-4b1e-86cd-1f566ca41062"],
+    ["Lab2"]
 )
 
 # Enable the rule
